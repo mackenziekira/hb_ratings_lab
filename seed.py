@@ -5,7 +5,7 @@ from model import User
 import re
 from datetime import datetime
 
-# from model import Rating
+from model import Rating
 from model import Movie
 
 from model import connect_to_db, db
@@ -50,7 +50,6 @@ def load_movies():
     for row in open("seed_data/u.item"):
         row = row.rstrip().split("|")
 
-        # row = row.split("|")
         movie_id, title, released_at, video_release, imdb_url = row[0:5]
 
         title = re.sub(r' \(\d\d\d\d\)', r'', title)
@@ -60,14 +59,6 @@ def load_movies():
         except ValueError:
             "Release Date is a blank field"
             released_at = datetime.strptime('01-01-1000', "%d-%m-%Y")
-
-
-
-            
-
-        # print "!!!!", movie_id, released_at
-
-        # user_id, age, gender, occupation, zipcode = row.split("|")
 
         movie = Movie(movie_id=movie_id,
                     title=title,
@@ -83,6 +74,31 @@ def load_movies():
 
 def load_ratings():
     """Load ratings from u.data into database."""
+
+    print "Ratings"
+
+    # Delete all rows in table, so if we need to run this a second time,
+    # we won't be trying to add duplicate movies
+    Rating.query.delete()
+
+    # Read u.user file and insert data
+    for row in open("seed_data/u.data"):
+        row = row.rstrip().split()
+
+        # row = row.split("|")
+        user_id, movie_id, score = row[0:3]
+
+
+        rating = Rating(movie_id=movie_id,
+                    user_id=user_id,
+                    score=score)
+
+        # We need to add to the session or it won't ever be stored
+        db.session.add(rating)
+
+    # Once we're done, we should commit our work
+    db.session.commit()
+
 
 
 def set_val_user_id():
