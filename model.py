@@ -1,7 +1,7 @@
 """Models and database functions for Ratings project."""
 
 from flask_sqlalchemy import SQLAlchemy
-from correlation import pearson
+import correlation
 
 # This is the connection to the PostgreSQL database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
@@ -27,6 +27,25 @@ class User(db.Model):
     def __repr__(self):
         return "User id={} email={} password={} zipcode={}".format(
         self.user_id, self.email, self.password, self.zipcode)
+
+    def calculate_pearson(self, user2):
+        """Calculates pearson similarity between two users"""
+
+        user_ratings = {}
+
+        paired_ratings = []
+
+        for r in self.ratings:
+            user_ratings[r.movie_id] = r.score
+
+        for r2 in user2.ratings:
+            user_score = user_ratings.get(r2.movie_id)
+
+            if user_score is not None:
+                paired_ratings.append((user_score, r2.score))
+
+        return correlation.pearson(paired_ratings)
+
 
 
 # Put your Movie and Rating model classes here.
@@ -63,6 +82,7 @@ class Rating(db.Model):
     def __repr__(self):
         return "Rating id={} movie_id={} user_id={} score={}".format(
         self.rating_id, self.movie_id, self.user_id, self.score)
+
 
 
 
