@@ -5,6 +5,16 @@
     <title>Ratings</title>
 </head>
 <body>
+
+{% if 'user_id' in session %} 
+    <button id="logout"><a href="/logout">Logout</a></button>
+    <button id="user_profile"><a href="/user/{{ session['user_id'] }}">User Profile</a></button>
+{% else %}
+    <button id="login"><a href="/login">Login</a></button>
+    <button id="sign_up"><a href="/register">Sign Up</a></button>
+{% endif %}
+
+
     <p class="flashed-messages">
       {% for message in get_flashed_messages() %}
         {{ message }}
