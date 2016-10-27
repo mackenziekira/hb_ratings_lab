@@ -8,6 +8,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from model import connect_to_db, db, User, Rating, Movie
 
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+
 
 app = Flask(__name__)
 
@@ -34,6 +36,29 @@ def user_list():
     users = User.query.all()
     return render_template("user_list.html", users=users)
 
+
+@app.route('/users/<user_id>')
+def user_info(user_id):
+    """ Shows user age, zipcode, list of rated movies"""
+
+    user = User.query.get(user_id)
+
+    return render_template("user_info.html", user=user)
+
+@app.route('/movies')
+def show_movies():
+    """Show a list of the movies"""
+    
+    movies = Movie.query.all()
+    return render_template('movie_list.html', movies=movies)
+
+@app.route('/movie/<movie_id>')
+def show_movie_details(movie_id):
+    """Show movie details"""
+
+    movie = Movie.query.get(movie_id)
+    return render_template('movie_details.html', movie=movie)
+
 @app.route('/register')
 def register_form():
     """Show a registration form"""
@@ -48,16 +73,20 @@ def register_process():
     user_email = request.form.get("email_address")
     password = request.form.get("password")
 
-    if (User.query.filter(User.email == user_email).first()):
-        print 'sorry that email exists in db'
-    else:
+    try:
+        User.query.filter(User.email == user_email).one()
+        flash('That email address already exists. Please choose another.')
+        return redirect('/register')
+    except NoResultFound:
         new_user = User(email=user_email,
                         password=password)
         db.session.add(new_user)
         db.session.commit()
-
-
-    return redirect('/')
+        return redirect('/')
+    except MultipleResultsFound:
+        print "multiple email addresses found. corrupt db. investigate!"
+        flash('That email address already exists. Please choose another.')
+        return redirect('/register')
 
 
 @app.route('/login')
@@ -69,24 +98,48 @@ def login_form():
 
 @app.route('/login', methods=["POST"])
 def login():
-    """Handels Login"""
+    """Handles Login"""
 
     user_email = request.form.get("email_address")
     password = request.form.get("password")
 
-    current_user = User.query.filter(User.email == user_email, User.password == password).first()
-
-    if current_user:
+    try:
+        current_user = User.query.filter(User.email == user_email, User.password == password).one()
         flash("Welcome, Willkommen, Bienvenidos - You are now logged in!")
         session["user_id"] = current_user.user_id
 
-        # log user in
-        return redirect('/')
-    else:
+        return redirect('/users/' + str(current_user.user_id))
+
+    except NoResultFound:
         flash("email and password didn't match any of our records") 
         return redirect('/login')
 
+@app.route('/logout')
+def logout_handler():
+    """Handles logout"""
+
     
+    session.clear()
+    flash("Goodbye, Auf Wiedersehen, Adieux. You are now logged out!")
+
+    return redirect('/')
+
+@app.route('/score-a-movie', methods=["POST"])
+def score_a_movie():
+    """Updates or enters a movie score, using a user's session id"""
+
+    score = request.form.get('score')
+    movie_id = request.form.get('movie_id')
+
+    # try:
+    #     get one row from ratings db based on user id and movie id
+    #     if there, update ratings.score
+    #     commit to db
+    # except NoResultFound:
+    #     insert new rating object and commit to db
+    # db_score = Rating.query.filter()
+
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
