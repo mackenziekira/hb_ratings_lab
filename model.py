@@ -46,9 +46,21 @@ class User(db.Model):
 
         return correlation.pearson(paired_ratings)
 
+    def predict_rating(self, movie):
+        """Given a movie, predict a rating"""
 
+        other_ratings = movie.ratings
+        other_users = [r.user for r in other_ratings]
+        
+        similarity = [(self.calculate_pearson(u), u) for u in other_users]
 
-# Put your Movie and Rating model classes here.
+        sorted_sim = sorted(similarity)
+        sim, top_match = sorted_sim[-2]
+
+        for rating in other_ratings:
+            if rating.user_id == top_match.user_id:
+                return sim * rating.score
+
 
 class Movie(db.Model):
     """ Movie details for ratings website"""
