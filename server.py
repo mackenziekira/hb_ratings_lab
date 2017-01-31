@@ -54,12 +54,20 @@ def show_movies():
     return render_template('movie_list.html', movies=movies)
 
 
-@app.route('/movie/<movie_id>')
+@app.route('/movies/<movie_id>')
 def show_movie_details(movie_id):
     """Show movie details"""
 
     movie = Movie.query.get(movie_id)
-    return render_template('movie_details.html', movie=movie)
+    user_id = session.get("user_id")
+
+    if user_id:
+        user_rating = Rating.query.filter_by(
+            movie_id=movie_id, user_id=user_id).first()
+
+    else:
+        user_rating = None
+    return render_template('movie.html', movie=movie, user_rating=user_rating)
 
 
 @app.route('/register')
@@ -85,7 +93,7 @@ def register_process():
                         password=password)
         db.session.add(new_user)
         db.session.commit()
-        return redirect('/')
+        return redirect('/login')
     except MultipleResultsFound:
         print "multiple email addresses found. corrupt db. investigate!"
         flash('That email address already exists. Please choose another.')
@@ -171,4 +179,4 @@ if __name__ == "__main__":
 
 
     
-    app.run()
+    app.run(host='0.0.0.0')
