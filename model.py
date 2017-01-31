@@ -44,22 +44,30 @@ class User(db.Model):
             if user_score is not None:
                 paired_ratings.append((user_score, r2.score))
 
-        return correlation.pearson(paired_ratings)
+        if paired_ratings:
+            return correlation.pearson(paired_ratings)
+
+        else:
+            return 0.0
 
     def predict_rating(self, movie):
         """Given a movie, predict a rating"""
 
         other_ratings = movie.ratings
-        other_users = [r.user for r in other_ratings]
         
-        similarity = [(self.calculate_pearson(u), u) for u in other_users]
+        similarities = [(self.calculate_pearson(r.user), r) for r in other_ratings]
 
-        sorted_sim = sorted(similarity)
-        sim, top_match = sorted_sim[-2]
+        similarities.sort(reverse=True)
 
-        for rating in other_ratings:
-            if rating.user_id == top_match.user_id:
-                return sim * rating.score
+        similarities = [(sim, r) for sim, r in similarities if sim > 0]
+
+        if not similarities:
+            return None
+
+        numerator = sum([r.score * sim for sim, r in similarities])
+        denominator = sum([sim for sim, r in similarities])
+
+        return numerator / denominator
 
 
 class Movie(db.Model):
