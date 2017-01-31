@@ -66,11 +66,12 @@ def show_movie_details(movie_id):
     if user_id:
         user_rating = Rating.query.filter_by(
             movie_id=movie_id, user_id=user_id).first()
-
-    else:
-        user = User.query.get(user_id)
-        user_rating = user.predict_rating(Movie.query.get(movie_id))
-        print user_rating
+        if user_rating:
+            user_rating = user_rating.score
+        else:
+            user = User.query.get(user_id)
+            user_rating = user.predict_rating(Movie.query.get(movie_id))
+            print user_rating
 
     return render_template('movie.html', movie=movie, user_rating=user_rating)
 

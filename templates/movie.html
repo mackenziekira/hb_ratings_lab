@@ -19,7 +19,7 @@
   {% if "user_id" in session %}
     <h2>Your Rating</h2>
     {% if user_rating %}
-        <p>You currently rate this a {{ user_rating.score }}</p>
+        <p>You currently rate this a {{ user_rating }}</p>
     {% endif %}
       <form action="/score-a-movie" method="POST">
           <label>Rating:
@@ -31,3 +31,5 @@
   {% endif %}
 
 {% endblock %}
+
+        
