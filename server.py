@@ -42,8 +42,10 @@ def user_info(user_id):
     """ Shows user age, zipcode, list of rated movies"""
 
     user = User.query.get(user_id)
+    user_id = session.get("user_id")
+    user_ratings = Rating.query.filter_by(user_id=user_id).all()
 
-    return render_template("user_info.html", user=user)
+    return render_template("user_info.html", user=user, user_ratings=user_ratings)
 
 
 @app.route('/movies')

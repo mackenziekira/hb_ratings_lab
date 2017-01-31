@@ -23,6 +23,7 @@
     {% endif %}
       <form action="/score-a-movie" method="POST">
           <label>Rating:
+            <input name='movie_id' value="{{ movie.movie_id }}" hidden>
               <input type="number" name="score">
           </label>
           <input type="submit" value="Rate">
